@@ -1,0 +1,3 @@
+C:/Users/rayka/CLionProjects/MaquinaVonNewman/cmake-build-debug/CMakeFiles/MaquinaVonNewman.dir
+C:/Users/rayka/CLionProjects/MaquinaVonNewman/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/rayka/CLionProjects/MaquinaVonNewman/cmake-build-debug/CMakeFiles/rebuild_cache.dir
