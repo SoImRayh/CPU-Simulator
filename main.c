@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "defines.h"
 unsigned int mbr; /**declarando o MBR(Memory Buffer Register) com tamanho de 32 bits
  *                   Toda a comunicação
@@ -63,7 +65,7 @@ __attribute__((unused)) int playing = 1; // flag para a continuidade do loop, el
 void Busca(){
     mar = pc;
     mbr = memoria[mar++];
-    for (mar; mar < 4;mar) {
+    for (int i = 1; i < 4;i++) {
         mbr = (mbr << 8 ) | memoria[mar++];
     }
     ir = mbr >> 24;
@@ -113,6 +115,21 @@ void PreencherRos(int i){
  *              OBS: não precisamos dislocar casas binárias já que nao é necessário pois todas as casas já estão nas
  *              casas menos significativas.
  */
+
+ /**@inserirMemoria*/
+void InserirMemoria(){
+    for(int i = 0; i < 4; i++){
+        if(i == 0) {
+            memoria[mar++] = mbr & 0xff000000;
+        }else if(i ==1 ){
+            memoria[mar++] = mbr & 0x00ff0000;
+        }else if(i ==2 ){
+            memoria[mar++] = mbr & 0x0000ff00;
+        }else if(i ==3 ){
+            memoria[mar++] = mbr & 0x000000ff;
+        }
+    }
+}
 void getMemoryAddress(){
     mar = mbr & 0x001fffff;
 }
@@ -302,18 +319,17 @@ void DecodificaAndExecuta(){
             BuscarNaMemoria();
             reg[ro0] = mbr;
             pc += 4;
-
             return;
+
         case st://
-        //
-        //
-        /// função ainda não implementada por enunciado ainda confuso, será corrigido no proximo commit
-        ///
-        //
-        ///
-        //
-        //
-        //
+            PreencherRos(1);
+            getMemoryAddress();
+            printf("\n%x",reg[ro0]);
+            printf("\n%x",memoria[mar]);
+            InserirMemoria();
+
+            printf("\n%x",memoria[mar+4]);
+            pc += 4;
             return;
         case movi:/**MOVE IMMEDIATE:
  *          regX = IMM
@@ -397,20 +413,28 @@ void DecodificaAndExecuta(){
 }
 
 int main() {
-    memoria[0]=0x00;
-    memoria[1]=0x00;
+    memoria[0]=ld;
+    memoria[1]=0x20;    // resgistor 1
     memoria[2]=0x00;
-    memoria[3]=0x04;
+    memoria[3]=0x0f;    // memoria[0x0f]
 
-    memoria[4]=0xff;
-    memoria[5]=0xa1;
-    memoria[6]=0x2b;
-    memoria[7]=0x06;
+    memoria[4]=st;
+    memoria[5]=0x20;    //registor 1
+    memoria[6]=0x00;
+    memoria[7]=0x6f;    //memoria[0x1f]
 
-    //while(playing == 1) {
+    memoria[8]=hlt;
+
+    memoria[0x0f] = 0x3c;
+    memoria[0x10] = 0x00;
+    memoria[0x11] = 0x00;
+    memoria[0x12] = 0x00;
+
+    while(playing == 1) {
         Busca();
         DecodificaAndExecuta();
-   // }
+    }
+
     return 0;
 }
 
