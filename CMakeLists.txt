@@ -3,4 +3,4 @@ project(MaquinaVonNewman C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(MaquinaVonNewman main.c defines.h)
+add_executable(MaquinaVonNewman a.txt main.c defines.h)

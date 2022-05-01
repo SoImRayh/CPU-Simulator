@@ -1,7 +1,15 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include "defines.h"
+#include <string.h>
+
+FILE *arq;
+char *pl ;
+char str[50];
+char mine[10] ;
+int linha;
+
 unsigned int mbr; /**declarando o MBR(Memory Buffer Register) com tamanho de 32 bits
  *                   Toda a comunicação
  *                   entre processador e Memoria RAm e feita por meio do MBR com uma frase de instrução
@@ -52,6 +60,209 @@ unsigned char memoria[154]; /** vetor memoria com 153 posicoes e de tamanho de 1
 
 __attribute__((unused)) int playing = 1; // flag para a continuidade do loop, ela é alterada caso seja fornecido a instrução @hlt (0x00)
 //##################################################FUNÇÕES#############################################################
+void guardarMemoria(unsigned int mem ,unsigned int a){
+    memoria[mem++] = (a & 0xff000000) >> 24;
+    memoria[mem++] = (a & 0x00ff0000) >> 16;
+    memoria[mem++] = (a & 0x0000ff00) >> 8;
+    memoria[mem] = (a & 0x0000ff);
+}
+void colocarInstru(int mem){
+    unsigned char *pl1, ro0; // aux recebe ro0
+    unsigned int count = 0, memImm;
+
+    pl1 = strtok(pl," ,");
+    while(pl1){
+        if(count == 0){
+            strcpy(mine,pl1);
+        }
+        if (count== 1){
+            ro0 = (int)strtol(pl1,NULL,16);
+        }
+        if(count == 2){
+            memImm = (int)strtol(pl1,NULL,16);
+        }
+        pl1 = strtok(NULL," ,r");
+        count++;
+    }
+    if(strcmp(mine,"ld")== 0){
+        unsigned int x = 0x13;
+        x = (x << 3) | ro0;
+        x = (x << 21)| memImm;
+        guardarMemoria(mem,x);
+    }else if(strcmp(mine,"st")== 0){
+        unsigned int x = st;
+        x = (x << 3) | ro0;
+        x = (x << 21)| memImm;
+        guardarMemoria(mem,x);
+    }else if(strcmp(mine,"add")== 0){
+        unsigned int x = add;
+        x = (x << 3) |ro0;
+        x = (x << 3) | memImm;
+        x =  x << 18;
+        guardarMemoria(mem,x);
+    }else if(strcmp(mine,"sub")== 0) {
+        unsigned int x = sub;
+        x = (x << 3) | ro0;
+        x = (x << 3) | memImm;
+        x = x << 18;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"mul")== 0) {
+        unsigned int x = mul;
+        x = (x << 3) | ro0;
+        x = (x << 3) | memImm;
+        x = x << 18;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"div")== 0) {
+        unsigned int x = div;
+        x = (x << 3) | ro0;
+        x = (x << 3) | memImm;
+        x = x << 18;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"cmp")== 0) {
+        unsigned int x = cmp;
+        x = (x << 3) | ro0;
+        x = (x << 3) | memImm;
+        x = x << 18;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"movr")== 0) {
+        unsigned int x = movr;
+        x = (x << 3) | ro0;
+        x = (x << 3) | memImm;
+        x = x << 18;
+        guardarMemoria(mem, x);
+    }
+    else if(strcmp(mine,"and")== 0) {
+        unsigned int x = and;
+        x = (x << 3) | ro0;
+        x = (x << 3) | memImm;
+        x = x << 18;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"or")== 0) {
+        unsigned int x = or;
+        x = (x << 3) | ro0;
+        x = (x << 3) | memImm;
+        x = x << 18;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"xor")== 0) {
+        unsigned int x = xor;
+        x = (x << 3) | ro0;
+        x = (x << 3) | memImm;
+        x = x << 18;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"not")== 0) {
+        unsigned int x = not;
+        x = ((x << 3)|ro0)<<21;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"je")== 0) {
+        unsigned int x = je;
+        x = (x << 24)| memImm;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"jne")== 0) {
+        unsigned int x = jne;
+        x = (x << 24)| memImm;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"jl")== 0) {
+        unsigned int x = jl;
+        x = (x << 24)| memImm;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"jg")== 0) {
+        unsigned int x = jg;
+        x = (x << 24)| memImm;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"jle")== 0) {
+        unsigned int x = jle;
+        x = (x << 24)| memImm;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"jge")== 0) {
+        unsigned int x = jge;
+        x = (x << 24)| memImm;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"jmp")== 0) {
+        unsigned int x = jmp;
+        x = (x << 24)| memImm;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"movi")== 0) {
+        unsigned int x = movi;
+        x = (x << 3) | ro0;
+        x = (x << 21) | memImm;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"addi")== 0) {
+        unsigned int x = addi;
+        x = (x << 3) | ro0;
+        x = (x << 21) | memImm;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"subi")== 0) {
+        unsigned int x = subi;
+        x = (x << 3) | ro0;
+        x = (x << 21) | memImm;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"muli")== 0) {
+        unsigned int x = muli;
+        x = (x << 3) | ro0;
+        x = (x << 21) | memImm;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"divi")== 0) {
+        unsigned int x = divi;
+        x = (x << 3) | ro0;
+        x = (x << 21) | memImm;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"lsh")== 0) {
+        unsigned int x = lsh;
+        x = (x << 3) | ro0;
+        x = (x << 21) | memImm;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"rsh")== 0) {
+        unsigned int x = rsh;
+        x = (x << 3) | ro0;
+        x = (x << 21) | memImm;
+        guardarMemoria(mem, x);
+    }else if(strcmp(mine,"nop")== 0) {
+        unsigned int x = nop;
+        x = x << 24;
+        guardarMemoria(mem, x);
+    }else{
+        unsigned int x  = 0;
+        guardarMemoria(mem,x);
+    }
+}
+void lerTexto(){
+
+    unsigned int mem, val;
+    unsigned char tipo,valor;
+    unsigned int count = 0;
+    arq = fopen("a.txt", "r");
+
+    while (fgets(str, 50, arq) != NULL){
+        pl = strtok(str, "; ");
+        mem = (int)strtol(pl,NULL,16); // pegando a memoria
+        while(pl){
+            if(count == 1){
+                tipo = *pl;
+                //  se é intrução retorna 0x69
+                //  se é dado retorna 0x64
+
+            }else if(count == 2){
+                if(tipo == 0x64){ // se for dado
+                    val = (int)strtol(pl,NULL,16);
+                    memoria[mem++] = (val & 0xff000000) >> 24;
+                    memoria[mem++] = (val & 0x00ff0000) >> 16;
+                    memoria[mem++] = (val & 0x0000ff00) >> 8;
+                    memoria[mem]   = (val & 0x000000ff);
+                }else{ //se for instrução
+                    colocarInstru(mem);
+                }
+            }
+
+            pl = strtok(NULL ,";");
+            count++;
+        }
+        count = 0;
+    }
+
+    if (NULL == arq)
+        printf("Arquivo a.txt nao encontrado \n");
+    fclose(arq);
+}
 /**  função @Busca
  *      função carregerMBR faz a busca na memória, que é o primeiro passo do ciclo:
  *                      -> Busca
@@ -68,7 +279,42 @@ void Busca(){
     for (int i = 1; i < 4;i++) {
         mbr = (mbr << 8 ) | memoria[mar++];
     }
-    ir = mbr >> 24;
+
+}
+
+/**
+ *          @getMemoryAddress
+ *          -> a função tem como objetivo armazenar o endereço de memoria com 21 bits no @mar
+ *          esta operação e feita com a ajuda de uma mascara e realizando operações lógicas & (e) no valor do MBR
+ *              ex:
+ *                  1111 1111 111x xxxx xxxx xxxx xxxx xxxx
+ *                  0000 0000 0001 1111 1111 1111 1111 1111
+ *                  ---------------------------------------
+ *                  0000 0000 000x xxxx xxxx xxxx xxxx xxxx
+ *
+ *          máscara=0x001fffff
+ *              OBS: não precisamos dislocar casas binárias já que nao é necessário pois todas as casas já estão nas
+ *              casas menos significativas.
+ */
+
+/**@inserirMemoria*/
+void InserirMemoria(){
+    memoria[mar++] = (mbr & 0xff000000)>> 24;
+    memoria[mar++] = (mbr & 0x00ff0000)>>16;
+    memoria[mar++] = (mbr & 0x0000ff00)>>8;
+    memoria[mar++] = mbr & 0x000000ff;
+
+}
+/** @BuscarNaMemoria
+ * função que após o @mar ser atualizado na decodificação da instrução vai na memoria e atualiza o @mbr para trazer
+ * os proximos 32 bits de memoria começando pelo endereço em @mar
+ * */
+void BuscarNaMemoria(){
+    mbr = memoria[mar++];
+    for (int i = 0; i < 3; ++i) {
+        mbr = (mbr << 8 ) | memoria[mar++];
+    }
+
 }
 /** @PreencherRos
  *  a função é responsável por preencher os Ro0 e Ro1
@@ -92,61 +338,27 @@ void Busca(){
  *          final:
  *              0000 0000 0001 1100 0000 0000 0000 0000
  */
-void PreencherRos(int i){
-    if(i == 1)
-        ro0 = (mbr & 0x00e00000) >> 21;
-    else if (i == 2){
+void Decodifica()  {
+    ir = mbr >> 24;
+    if(ir >= hlt && ir <= nop){
+        ///fazer nada.
+    }else if(ir >= add && ir <= 0x08){
         ro0 = (mbr & 0x00e00000) >> 21;
         ro1 = (mbr & 0x001c0000) >> 18;
+    }else if(ir == 0x0b){
+        ro0 = (mbr & 0x00e00000) >> 21;
+    }else if(ir >= je && ir <= jmp){
+        mar = mbr & 0x001fffff;
+    }else if(ir >= ld && ir <= st){
+        ro0 = (mbr & 0x00e00000) >> 21;
+        mar = mbr & 0x001fffff;
+    }else if(ir >= movi && ir <= rsh){
+        ro0 = (mbr & 0x00e00000) >> 21;
+        imm = mbr & 0x001fffff;
     }
-}
-
-/**
- *          @getMemoryAddress
- *          -> a função tem como objetivo armazenar o endereço de memoria com 21 bits no @mar
- *          esta operação e feita com a ajuda de uma mascara e realizando operações lógicas & (e) no valor do MBR
- *              ex:
- *                  1111 1111 111x xxxx xxxx xxxx xxxx xxxx
- *                  0000 0000 0001 1111 1111 1111 1111 1111
- *                  ---------------------------------------
- *                  0000 0000 000x xxxx xxxx xxxx xxxx xxxx
- *
- *          máscara=0x001fffff
- *              OBS: não precisamos dislocar casas binárias já que nao é necessário pois todas as casas já estão nas
- *              casas menos significativas.
- */
-
- /**@inserirMemoria*/
-void InserirMemoria(){
-    for(int i = 0; i < 4; i++){
-        if(i == 0) {
-            memoria[mar++] = mbr & 0xff000000;
-        }else if(i ==1 ){
-            memoria[mar++] = mbr & 0x00ff0000;
-        }else if(i ==2 ){
-            memoria[mar++] = mbr & 0x0000ff00;
-        }else if(i ==3 ){
-            memoria[mar++] = mbr & 0x000000ff;
-        }
-    }
-}
-void getMemoryAddress(){
-    mar = mbr & 0x001fffff;
-}
-/** @BuscarNaMemoria
- * função que após o @mar ser atualizado na decodificação da instrução vai na memoria e atualiza o @mbr para trazer
- * os proximos 32 bits de memoria começando pelo endereço em @mar
- * */
-void BuscarNaMemoria(){
-    mbr = memoria[mar++];
-    for (int i = 0; i < 3; ++i) {
-        mbr = (mbr << 8 ) | memoria[mar++];
-
-    }
-
 }
 //##################################################BRINCADEIRA#########################################################
-void DecodificaAndExecuta(){
+void Executa(){
     switch (ir) {
         case hlt:/**
 *           HALT: o processador não faz nada. Em outras palavras, nenhum registrador tem o seu valor alterado
@@ -164,30 +376,30 @@ void DecodificaAndExecuta(){
 *            Esta instrução opera a soma entre dois valores armazenados nos registradores apontados por ro0 e ro1
 *            e o resultado é armazenado no registrador de ro0
 */
-            PreencherRos(2);
-            reg[ro0] -= reg[ro1];
+
+            reg[ro0] += reg[ro1];
             pc += 4;
             return;
         case sub:/** SUBTRACT REGISTER
  *           Esta instrução opera a subtração entre dois valores armazenados nos registradores apontados por ro0 e ro1
  *           e o resultado é armazenado no registrador de ro0
- */         PreencherRos(2);
-            reg[ro0] += reg[ro1];
+ */
+            reg[ro0] -= reg[ro1];
             pc += 4;
             return;
         case mul:/** MULTIPLY REGISTER
  *          Esta instrução opera a multiplicação entre dois valores armazenados nos registradores apontados por ro0 e ro1
  *          e o resultado é armazenado no registrador de ro0
 */
-            PreencherRos(2);
+
             reg[ro0] *= reg[ro1];
             pc += 4;
             return;
-        case div:/** DIVIDE REGISTER
+        case 0x05:/** DIVIDE REGISTER
  *          Esta instrução opera a divisão entre dois valores armazenados nos registradores apontados por ro0 e ro1
  *          e o resultado é armazenado no registrador de ro0
  */
-            PreencherRos(2);
+
             reg[ro0] /= reg[ro1];
             pc += 4;
             return;
@@ -199,7 +411,7 @@ void DecodificaAndExecuta(){
  *              se reg[ro0] < reg[ro1], @L = 1 senão @L = 0
  *              se reg[ro0] > reg[ro1], @G = 1 senão @G = 0
  */
-            PreencherRos(2);
+
             if(reg[ro0] == reg[ro1]){
                 E = 1;
                 L = 0;
@@ -218,45 +430,45 @@ void DecodificaAndExecuta(){
         case movr:/** MOVE REGISTER
  *          esta instrução opera a copia o valor amazenado no registrador apontado por ro1 para o valor apontado por ro0
 */
-            PreencherRos(2);
+
             reg[ro0]  = reg[ro1];
             pc += 4;
             return;
-        case and:/** LOGICAL-AND ON REGISTER
+        case 0x08:/** LOGICAL-AND ON REGISTER
  *          esta instrução opera um comparação logica (and / e) entre os valores armazenados nos registradores apontados
  *          por ro0 e ro1 e o resultado é armazenado no registardor apontado por ro0
  */
-            PreencherRos(2);
+
             reg[ro0] &= reg[ro1];
             pc += 4;
             return;
-        case or:/** LOGICAL-OR ON REGISTER
+        case 0x09:/** LOGICAL-OR ON REGISTER
  *          esta instrução opera uma comparação logica (or /ou) entre os valores armazenados nos registradores apontados
  *          por ro0 e ro1 e o resultado é armazenado no resgistrador apontado por ro0
  */
-            PreencherRos(2);
+
             reg[ro0] |= reg[ro1];
             pc += 4;
             return;
-        case xor:/** LOGICAL-XOR ON REGISTER
+        case 0x0a:/** LOGICAL-XOR ON REGISTER
  *          esta instrução opera uma operação logica (xor / ou exclusivo) entre os valores armazenados nos registradores
  *          apontados por ro0 e ro1 e o resultado é armazenado no registrador apontado por ro0;
  */
-            PreencherRos(2);
+
             reg[ro0] ^= reg[ro1];
             pc += 4;
             return;
-        case not:/** LOGICAL-NOT REGISTER
+        case 0x0b:/** LOGICAL-NOT REGISTER
  *          esta instrução opera uma operação logica (not / não) no valor armazenado no registrador apontado por ro0
  *          e o resultado é armazenado no registrador apontado por ro0
  */
-            PreencherRos(1);
+
             reg[ro0] = !reg[ro0];
             pc += 4;
             return;
         case je:/**JUMP IF EQUAL TO:
  *          muda o registrador PC para o endereço de memória X caso E = 1
- */         getMemoryAddress();
+ */
             if(E == 1)
                 pc = mar;
             else
@@ -264,7 +476,7 @@ void DecodificaAndExecuta(){
             return;
         case jne:/**JUMP IF NOT EQUAL TO:
  *          muda o registrador PC para o endereço de memória X caso E = 0.
- */         getMemoryAddress();
+ */
             if(E == 0)
                 pc = mar;
             else
@@ -272,7 +484,7 @@ void DecodificaAndExecuta(){
             return;
         case jl:/**JUMP IF LOWER THAN:
  *          muda o registrador PC para o endereço de memória X caso L = 1.
- */         getMemoryAddress();
+ */
             if(L == 1)
                 pc = mar;
             else
@@ -281,7 +493,7 @@ void DecodificaAndExecuta(){
         case jle:/**JUMP IF LOWER THAN OR EQUAL TO:
  *          muda o registrador PC para o endereço de memória X caso E = 1 ou L = 1.
  */
-            getMemoryAddress();
+
             if(E == 1 || L == 1)
                 pc =mar;
             else
@@ -290,7 +502,7 @@ void DecodificaAndExecuta(){
         case jg:/**JUMP IF GREATER THAN:
  *          muda o registrador PC para o endereço de memória X caso G = 1.
  */
-            getMemoryAddress();
+
             if(G == 1)
                 pc = mar;
             else
@@ -299,7 +511,7 @@ void DecodificaAndExecuta(){
         case jge:/**JUMP IF GREATER THAN OR EQUAL TO:
  *          muda o registrador PC para o endereço de memória X caso E = 1 ou G = 1.
  */
-            getMemoryAddress();
+
             if(E == 1 || G == 1)
                 pc =mar;
             else
@@ -308,36 +520,25 @@ void DecodificaAndExecuta(){
         case jmp:/**JUMP:
  *          muda o registrador PC para o endereço de memória X.
  */
-            getMemoryAddress();
+
             pc = mar;
             return;
         case ld:/**LOAD:
  *          carrega para o registrador X uma palavra da memória de 32 bits que se inicia no endereço Y
  */
-            PreencherRos(1);
-            getMemoryAddress();
             BuscarNaMemoria();
             reg[ro0] = mbr;
             pc += 4;
             return;
 
         case st://
-            PreencherRos(1);
-            getMemoryAddress();
-            printf("\n%x",reg[ro0]);
-            printf("\n%x",memoria[mar]);
-            InserirMemoria();
-
-            printf("\n%x",memoria[mar+4]);
+            mbr = reg[ro0];
+            guardarMemoria(mar,mbr);
             pc += 4;
             return;
         case movi:/**MOVE IMMEDIATE:
  *          regX = IMM
 */
-            PreencherRos(1);
-            getMemoryAddress();
-            BuscarNaMemoria();
-            imm = mar;
             reg[ro0] = imm;
             pc += 4;
             return;
@@ -345,10 +546,6 @@ void DecodificaAndExecuta(){
  *           esta instrução opera a soma entre valores armazenados nos registradores apontados por ro0 e imm
  *           e o resultado é armazenado no registrador apontado por ro0
  */
-            PreencherRos(1);
-            getMemoryAddress();
-            BuscarNaMemoria();
-            imm = mbr;
             reg[ro0] += imm;
             pc += 4;
             return;
@@ -356,10 +553,6 @@ void DecodificaAndExecuta(){
  *           esta instrução opera a subtração entre valores armazenados nos registradores apontados por ro0 e imm
  *           e o resultado é armazenado no registrador apontado por ro0
  */
-            PreencherRos(1);
-            getMemoryAddress();
-            BuscarNaMemoria();
-            imm = mbr;
             reg[ro0] -= imm;
             pc += 4;
             return;
@@ -367,10 +560,6 @@ void DecodificaAndExecuta(){
  *           esta instrução opera a multiplicação entre valores armazenados nos registradores apontados por ro0 e imm
  *           e o resultado é armazenado no registrador apontado por ro0
  */
-            PreencherRos(1);
-            getMemoryAddress();
-            BuscarNaMemoria();
-            imm = mbr;
             reg[ro0] *= imm;
             pc += 4;
             return;
@@ -378,10 +567,6 @@ void DecodificaAndExecuta(){
  *           esta instrução opera a divisão entre valores armazenados nos registradores apontados por ro0 e imm
  *           e o resultado é armazenado no registrador apontado por ro0
  */
-            PreencherRos(1);
-            getMemoryAddress();
-            BuscarNaMemoria();
-            imm = mbr;
             reg[ro0] /= imm;
             pc += 4;
             return;
@@ -389,8 +574,7 @@ void DecodificaAndExecuta(){
  *          esta instrução deloca a palavra armazenada no registrador apontado por ro0 na quantidade de bits armazenada
  *          em imm para a esquerda
  */
-            PreencherRos(1);
-            getMemoryAddress();
+
             BuscarNaMemoria();
             imm = mbr;
             reg[ro0] =reg[ro0] << imm;
@@ -400,8 +584,7 @@ void DecodificaAndExecuta(){
  *          esta instrução deloca a palavra armazenada no registrador apontado por ro0 na quantidade de bits armazenada
  *          em imm para a direita
  */
-            PreencherRos(1);
-            getMemoryAddress();
+
             BuscarNaMemoria();
             imm = mbr;
             reg[ro0] =reg[ro0] >> imm;
@@ -413,29 +596,19 @@ void DecodificaAndExecuta(){
 }
 
 int main() {
-    memoria[0]=ld;
-    memoria[1]=0x20;    // resgistor 1
-    memoria[2]=0x00;
-    memoria[3]=0x0f;    // memoria[0x0f]
-
-    memoria[4]=st;
-    memoria[5]=0x20;    //registor 1
-    memoria[6]=0x00;
-    memoria[7]=0x6f;    //memoria[0x1f]
-
-    memoria[8]=hlt;
-
-    memoria[0x0f] = 0x3c;
-    memoria[0x10] = 0x00;
-    memoria[0x11] = 0x00;
-    memoria[0x12] = 0x00;
+    //--------------------------------------------------------------------------------------
+    lerTexto();
 
     while(playing == 1) {
         Busca();
-        DecodificaAndExecuta();
+        Decodifica();
+        Executa();
     }
+        printf("%x",memoria[0x7d]);
 
     return 0;
 }
+
+
 
 

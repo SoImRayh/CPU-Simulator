@@ -1,0 +1,27 @@
+0;i;ld r0, 86
+4;i;ld r1, 8a
+8;i;div r0, r1
+c;i;ld r1, 92
+10;i;ld r2, 96
+14;i;sub r1, r2
+18;i;ld r2, 8e
+1c;i;mul r1, r2
+20;i;add r0, r1
+24;i;ld r1, 7a
+28;i;add r0, r1
+2c;i;st r0, 7a
+30;i;ld r0, 7e
+34;i;ld r1, 82
+38;i;addi r0, 1
+3c;i;st r0, 7e
+40;i;cmp r0, r1
+44;i;jl 0
+48;i;hlt
+7a;d;0
+7e;d;1
+82;d;a
+86;d;a
+8a;d;5
+8e;d;3
+92;d;2
+96;d;1
