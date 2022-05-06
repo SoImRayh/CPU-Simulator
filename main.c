@@ -621,16 +621,28 @@ void Executa(){
 }
 
 int main() {
-    //--------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------------------------------
     lerTexto();
-
     while(playing == 1) {
+        //-------------------------------------------------ciclo da maquina---------------------------------------------
         Busca();
         Decodifica();
         Executa();
+        //-----------------------------------------------imprimindo os valores------------------------------------------
+        printf("valores da memoria e registradores:\n");
+        for (int i = 0 ; i < 8 ; i++) {
+            printf("reg[%x]=%x\t",i, reg[i]);
+        }
+        printf("=====# valores da memoria #=====\n");
+        for(int i = 0 ; i< 155;i++){
+            printf("[%x]=%x\t",i,memoria[i]);
+            if(i%10 == 0 && i !=0)
+                printf("\n");
+        }
+        printf("\n ## pressione enter para o proximo ciclo ##");
+        getchar();
+        system("cls");
     }
-        printf("%x",memoria[0x7d]);
-
     return 0;
 }
 
