@@ -70,6 +70,8 @@ void colocarInstru(int mem){
     unsigned char *pl1, ro0; // aux recebe ro0
     unsigned int count = 0, memImm;
 
+    /*de cordo com a comparação das string sera encaminhado aara a estruturação correspodente isto é, trataremos as
+     * as instruções em diferentes f*/
     pl1 = strtok(pl," ,");
     while(pl1){
         if(count == 0){
@@ -225,16 +227,36 @@ void colocarInstru(int mem){
         guardarMemoria(mem,x);
     }
 }
+
+/** a função @lerTexto é a implementação da leitura de um arquivo .txt
+ *  a ideia aqui é montar a palavra de 32 bits e assim apenas inserir na memoria usando 8 bits
+ *  por cada espaço da memória*/
 void lerTexto(){
 
+    // variaveis auxiliares para a montagem da palavra final de 32 bits
     unsigned int mem, val;
-    unsigned char tipo,valor;
+    unsigned char tipo;
     unsigned int count = 0;
+
+    // para abrir um arquivo usa-se fopen passando o nome do arquivo no modo "r" = read
     arq = fopen("a.txt", "r");
+
+//    a função gira em torno de:
+//        -separar o texto todo em frases,
+//        -para cada frase, separar os campos
+//        -montar a "string" de 32 bists para inserir na memoria
 
     while (fgets(str, 50, arq) != NULL){
         pl = strtok(str, "; ");
+        //o comando strtok separa a string sempre um caracter é passado por exemplo a frase "alo; gosto; de melancia"
+        //separada por ";" assim,
+        // ficaria linha 1 = alo linha 2 = gosto e linha 3 = de melancia.
         mem = (int)strtol(pl,NULL,16); // pegando a memoria
+
+        /*dentro do while o objetivo é ler todas a frases do texto e preencher as variáveis para a montar a palavra a ser
+         * inserida, sempres chamando a cariavel pl como sendo a palavra e a variavel count usamos como um direcionador
+         * para qual coluna da frase queremos (ou palavras entre os caracteres que separam na função srttok) e passaremos com as
+         * mascaras*/
         while(pl){
             if(count == 1){
                 tipo = *pl;
@@ -242,17 +264,20 @@ void lerTexto(){
                 //  se é dado retorna 0x64
 
             }else if(count == 2){
+                /*Na segunda coluna verificamos se é um dado ou se é instrução, caso for dado usamos as mascaras de
+                 *para termos apenas os bits importantes para a posição na memoria e insermos na memoria*/
                 if(tipo == 0x64){ // se for dado
                     val = (int)strtol(pl,NULL,16);
                     memoria[mem++] = (val & 0xff000000) >> 24;
                     memoria[mem++] = (val & 0x00ff0000) >> 16;
                     memoria[mem++] = (val & 0x0000ff00) >> 8;
                     memoria[mem]   = (val & 0x000000ff);
-                }else{ //se for instrução
+                }else{ //se for instrução mandarei para uma função auxiliar que faz a modificação dos campos e tratarei a palavra lá
                     colocarInstru(mem);
                 }
             }
-
+            /*Enquanto a proxima palavra dor diferente NULL o while ainda ficará no loop e no final de cada iteração
+             * a variável palavra(pl) passará a ser a proxima palavra, se nula, sairmos do while */
             pl = strtok(NULL ,";");
             count++;
         }
